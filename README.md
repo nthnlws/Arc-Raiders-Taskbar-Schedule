@@ -23,7 +23,7 @@ If you want to build the executable yourself, you'll need PyInstaller.
 
 ```bash
 pip install pyinstaller
-pyinstaller --onefile --noconsole src/arc_schedule.py
+pyinstaller --onefile --noconsole src/arc_schedule.py```
 
 ## Data Source & Attribution
 
