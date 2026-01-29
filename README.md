@@ -9,6 +9,14 @@ A simple, borderless window that displays a schedule of events on top of your ta
 *   Toggle between "LIVE" and "NEXT" views using the `F12` key.
 *   Automatically refreshes data every 5 minutes.
 
+## Data Source & Attribution
+
+This project uses the Unofficial Arc Raiders API provided by MetaForge. The data is subject to change and is not affiliated with Embark Studios.
+
+In accordance with the API's terms, attribution is provided below:
+
+> All data is sourced from the [MetaForge API for Arc Raiders](https://metaforge.app/arc-raiders).
+
 ## Installation and Usage
 
 ### For End-Users (Recommended)
@@ -23,12 +31,4 @@ If you want to build the executable yourself, you'll need PyInstaller.
 
 ```bash
 pip install pyinstaller
-pyinstaller --onefile --noconsole src/arc_schedule.py```
-
-## Data Source & Attribution
-
-This project uses the Unofficial Arc Raiders API provided by MetaForge. The data is subject to change and is not affiliated with Embark Studios.
-
-In accordance with the API's terms, attribution is provided below:
-
-> All data is sourced from the [MetaForge API for Arc Raiders](https://metaforge.app/arc-raiders).
+pyinstaller --onefile --noconsole src/arc_schedule.py
