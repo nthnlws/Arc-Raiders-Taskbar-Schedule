@@ -24,3 +24,11 @@ If you want to build the executable yourself, you'll need PyInstaller.
 ```bash
 pip install pyinstaller
 pyinstaller --onefile --noconsole src/arc_schedule.py
+
+## Data Source & Attribution
+
+This project uses the Unofficial Arc Raiders API provided by MetaForge. The data is subject to change and is not affiliated with Embark Studios.
+
+In accordance with the API's terms, attribution is provided below:
+
+> All data is sourced from the [MetaForge API for Arc Raiders](https://metaforge.app/arc-raiders).
