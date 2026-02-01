@@ -1,6 +1,7 @@
 # Event Tracker Overlay
 
 A simple, borderless window that displays a schedule of events on top of your taskbar, fetching data from the MetaForge API.
+<img width="1911" height="44" alt="image" src="https://github.com/user-attachments/assets/fd81f6ec-c2c6-4d3b-823b-0fa173f7e826" />
 
 ## Features
 
