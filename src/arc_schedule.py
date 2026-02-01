@@ -17,6 +17,8 @@ class RepeatingTimer(Timer):
 
 class EventTracker:
     def __init__(self, root):
+        self.full_schedule = []
+
         self.root = root
         self.active_events = []
         self.upcoming_events = []
@@ -26,8 +28,8 @@ class EventTracker:
         self.create_widgets()
 
         self.fetch_data()
-        self.api_timer = RepeatingTimer(REFRESH_RATE, self.fetch_data)
-        self.api_timer.start()
+        self.ui_timer = RepeatingTimer(60.0, self.process_data)
+        self.ui_timer.start()
 
         self.listener = keyboard.Listener(on_press=self.on_key_press)
         self.listener.start()
@@ -61,26 +63,29 @@ class EventTracker:
         try:
             response = requests.get(API_URL)
             if response.status_code == 200:
-                self.process_data(response.json().get("data", []))
+                data = response.json()
+                self.full_schedule = data.get("data", [])
+                self.process_data()
             else:
                 self.content_label.config(text="Error fetching data")
         except requests.RequestException:
             self.content_label.config(text="Connection error")
 
-    def process_data(self, data_array):
+    def process_data(self):
+        print("Processing data...")
         self.active_events = []
         self.upcoming_events = []
         now = time.time()
 
-        for evt in data_array:
-            start = float(evt["startTime"]) / 1000.0
-            end = float(evt["endTime"]) / 1000.0
+        for evt in self.full_schedule:
+            start = evt["startTime"] / 1000.0
+            end = evt["endTime"] / 1000.0
 
-            if now >= start and now < end:
+            if start <= now < end:
                 self.active_events.append(evt)
             elif now < start:
                 self.upcoming_events.append(evt)
-        
+
         self.upcoming_events.sort(key=lambda x: x["startTime"])
         self.update_display()
 
