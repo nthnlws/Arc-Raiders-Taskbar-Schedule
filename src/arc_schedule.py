@@ -134,10 +134,13 @@ class EventTracker:
             else:
                 events_str = []
                 for evt in self.active_events:
+                    if evt['name'] == "Electromagnetic Storm":
+                        evt['name'] = "EMS"
                     end_sec = float(evt["endTime"]) / 1000.0
                     mins_left = max(0, int((end_sec - now) / 60.0))
-                    events_str.append(f"{evt['name']} ({evt['map']}, {mins_left}m)")
+                    events_str.append(f"{evt['name']} ({evt['map']})")
                 text_str = " • ".join(events_str)
+                text_str += f" • {mins_left}m left"
         else:
             self.header_label.config(text="NEXT", fg="cyan")
             if not self.upcoming_events:
