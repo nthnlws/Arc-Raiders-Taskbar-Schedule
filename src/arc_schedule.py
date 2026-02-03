@@ -64,12 +64,15 @@ class EventTracker:
             response = requests.get(API_URL)
             if response.status_code == 200:
                 data = response.json()
-                self.full_schedule = data.get("data", [])
-                self.process_data()
+                if data['data'] != []:
+                    self.full_schedule = data.get("data", [])
+                    self.process_data()
+                else:
+                    self.content_label.config(text="No Metaforge data available", fg="OrangeRed1", font=("Arial", 12, "bold"))
             else:
-                self.content_label.config(text="Error fetching data")
+                self.content_label.config(text="Error fetching data", fg="OrangeRed1", font=("Arial", 12, "bold"))
         except requests.RequestException:
-            self.content_label.config(text="Connection error")
+            self.content_label.config(text="Connection error", fg="OrangeRed1", font=("Arial", 12, "bold"))
 
     def process_data(self):
         print("Processing data...")
