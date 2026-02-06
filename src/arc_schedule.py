@@ -3,10 +3,12 @@ import requests
 import time
 from threading import Timer
 from pynput import keyboard
+import ctypes
 
 # --- CONFIGURATION ---
 API_URL = "https://metaforge.app/api/arc-raiders/events-schedule"
-REFRESH_RATE = 300.0  # API refresh rate for error retries (in seconds)
+REFRESH_RATE = 300.0       # Retry rate if the API fails (5 mins)
+DATA_REFRESH_RATE = 3600.0 # How often to grab fresh data (1 hour)
 WINDOW_WIDTH = 675
 WINDOW_HEIGHT = 40
 
@@ -48,6 +50,16 @@ class EventTracker:
         self.root.attributes("-transparentcolor", "black")
         self.position_window()
 
+        # --- MAKE CLICK-THROUGH ---
+        # GWL_EXSTYLE = -20
+        # WS_EX_TRANSPARENT = 0x20
+        # WS_EX_LAYERED = 0x80000
+        
+        hwnd = ctypes.windll.user32.GetParent(self.root.winfo_id())
+        style = ctypes.windll.user32.GetWindowLongW(hwnd, -20)
+        style = style | 0x20 | 0x80000
+        ctypes.windll.user32.SetWindowLongW(hwnd, -20, style)
+
     def create_widgets(self):
         self.header_label = tk.Label(self.root, text="", font=("Arial", 12, "bold"), fg="white", bg="black")
         self.header_label.pack(side=tk.LEFT, padx=10)
@@ -63,30 +75,28 @@ class EventTracker:
         self.root.geometry(f"+{x}+{y}")
 
     def fetch_data(self):
-        # Cancel any pending retry timer if this function is called manually
         if self.retry_timer and self.retry_timer.is_alive():
             self.retry_timer.cancel()
 
         try:
             response = requests.get(API_URL)
-            
             if response.status_code == 200:
                 data = response.json()
                 if data.get('data'):
-                    # --- SUCCESS CASE ---
                     self.full_schedule = data.get("data", [])
                     self.process_data()
-                    print("Data fetched successfully. Retry loop stopped.")
+                    
+                    # --- Schedule the next fetch even on success ---
+                    print(f"Data refreshed. Next refresh in {DATA_REFRESH_RATE}s")
+                    self.retry_timer = Timer(DATA_REFRESH_RATE, self.fetch_data)
+                    self.retry_timer.daemon = True
+                    self.retry_timer.start()
                     return 
                 else:
-                    # --- NO METAFORGE DATA ---
                     self.schedule_retry("No Metaforge data available")
             else:
-                # --- HTTP ERROR ---
-                self.schedule_retry("Error fetching data")
-                
+                self.schedule_retry(f"HTTP Error {response.status_code}")
         except requests.RequestException:
-            # --- CONNECTION ERROR ---
             self.schedule_retry("Connection error")
 
     def schedule_retry(self, error_message):
@@ -98,18 +108,15 @@ class EventTracker:
         self.retry_timer = Timer(REFRESH_RATE, self.fetch_data)
         self.retry_timer.start()
 
-    def process_data(self): # Only process if data was returned
-        if not self.full_schedule:
-            return
-
-        print("Processing data...")
+    def process_data(self):
         self.active_events = []
         self.upcoming_events = []
         now = time.time()
 
         for evt in self.full_schedule:
-            start = evt["startTime"] / 1000.0
-            end = evt["endTime"] / 1000.0
+            # Convert ms to seconds
+            start = float(evt["startTime"]) / 1000.0
+            end = float(evt["endTime"]) / 1000.0
 
             if start <= now < end:
                 self.active_events.append(evt)
@@ -140,7 +147,7 @@ class EventTracker:
                     mins_left = max(0, int((end_sec - now) / 60.0))
                     events_str.append(f"{evt['name']} ({evt['map']})")
                 text_str = " • ".join(events_str)
-                text_str += f" • {mins_left}m left"
+                text_str += f" • {mins_left}m"
         else:
             self.header_label.config(text="NEXT", fg="cyan")
             if not self.upcoming_events:
